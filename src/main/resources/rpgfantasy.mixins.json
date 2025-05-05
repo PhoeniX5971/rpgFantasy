@@ -2,7 +2,12 @@
   "required": true,
   "package": "net.phoenix.rpgfantasy.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": ["ExampleMixin", "PlayerEntityMixin", "PlayerEntityMixinAccessor"],
+  "mixins": [
+    "ExampleMixin",
+    "PlayerEntityMixin",
+    "PlayerEntityMixinAccessor",
+    "PlayerDataSaveMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
