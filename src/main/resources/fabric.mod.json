@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "rpgfantasy",
+  "version": "${version}",
+  "name": "rpgFantasy",
+  "description": "Attempt at a rpg fantasy mod.",
+  "authors": ["phoenix"],
+  "contact": {
+    "homepage": "https://github.com/PhoeniX5971/rpgFantasy.git",
+    "sources": "https://github.com/PhoeniX5971/rpgFantasy.git"
+  },
+  "license": "CC0-1.0",
+  "icon": "assets/rpgfantasy/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["net.phoenix.rpgfantasy.RpgFantasy"],
+    "fabric-datagen": ["net.phoenix.rpgfantasy.RpgFantasyDataGenerator"],
+
+    "client": ["net.phoenix.rpgfantasy.RpgFantasyClient"]
+  },
+  "mixins": ["rpgfantasy.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "minecraft": "~1.21.4",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
