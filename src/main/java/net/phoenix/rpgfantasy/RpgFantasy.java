@@ -2,12 +2,12 @@ package net.phoenix.rpgfantasy;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.entity.player.PlayerEntity;
-import net.phoenix.rpgfantasy.attribute.ModAttributes;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.phoenix.rpgfantasy.api.PlayerAttributeHolder;
+import net.phoenix.rpgfantasy.attribute.PlayerAttributes;
 import net.phoenix.rpgfantasy.command.ModCommands;
-import net.phoenix.rpgfantasy.util.ManaAccessor;
-
+import net.phoenix.rpgfantasy.event.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,19 +17,28 @@ public class RpgFantasy implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Hello Fabric world!");
+		LOGGER.info("Initializing RPG Fantasy Mod");
 
-		ModAttributes.register();
-
+		// Command Registration
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ModCommands.register(dispatcher);
 		});
 
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			PlayerEntity player = handler.player;
-			if (player instanceof ManaAccessor mana) {
-				mana.setMana(200);
+		// Event Handlers
+		ManaHandler.register();
+		HealthHandler.register();
+
+		// Respawn Handling
+		ServerPlayerEvents.COPY_FROM.register((newPlayer, oldPlayer, alive) -> {
+			if (!alive) {
+				PlayerAttributes attributes = ((PlayerAttributeHolder) newPlayer).getAttributes();
+				attributes.get("health").setCurrent(attributes.get("health").getMax());
 			}
+		});
+
+		// Debug Info
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			LOGGER.info("RPG Fantasy systems activated on server");
 		});
 	}
 }

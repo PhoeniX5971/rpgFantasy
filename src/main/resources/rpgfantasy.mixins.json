@@ -2,11 +2,7 @@
   "required": true,
   "package": "net.phoenix.rpgfantasy.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "PlayerEntityMixin",
-    "PlayerEntityMixinAccessor",
-    "PlayerDataSaveMixin"
-  ],
+  "mixins": ["PlayerAttributeMixin", "HealthDamageMixin", "MaxHealthMixin"],
   "injectors": {
     "defaultRequire": 1
   }

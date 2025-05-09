@@ -2,48 +2,85 @@ package net.phoenix.rpgfantasy.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.phoenix.rpgfantasy.util.ManaAccessor;
+import net.phoenix.rpgfantasy.api.PlayerAttributeHolder;
+import net.phoenix.rpgfantasy.attribute.PlayerAttributeInstance;
+import net.phoenix.rpgfantasy.attribute.PlayerAttributes;
 
 public class ModCommands {
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-		dispatcher.register(CommandManager.literal("getmana").executes(context -> {
-			ServerCommandSource source = context.getSource();
+		// Get Attribute Value
+		// Get Attribute Value
+		dispatcher.register(CommandManager.literal("rpg-get")
+				.then(CommandManager.argument("attribute", StringArgumentType.word())
+						.executes(context -> {
+							ServerPlayerEntity player = (ServerPlayerEntity) context.getSource().getEntity();
+							String attr = StringArgumentType.getString(context, "attribute");
 
-			if (!(source.getEntity() instanceof PlayerEntity player)) {
-				source.sendError(Text.literal("This command must be run by a player."));
-				return 0;
-			}
+							PlayerAttributeInstance instance = ((PlayerAttributeHolder) player).getAttributes()
+									.get(attr);
+							context.getSource().sendFeedback(
+									() -> Text.literal(attr + ": " + instance.getCurrent() + "/" + instance.getMax()),
+									false);
+							return 1;
+						}))); // ← MISSING THIS!
 
-			double currentMana = ((ManaAccessor) player).getMana();
-			source.sendFeedback(() -> Text.literal("Your mana: " + currentMana), false);
-			return 1;
-		}));
-
-		dispatcher.register(CommandManager.literal("setmana")
-				.requires(source -> source.hasPermissionLevel(2)) // Only allow OPs
+		// Set Attribute Value
+		dispatcher.register(CommandManager.literal("rpg-set")
+				.requires(src -> src.hasPermissionLevel(2))
 				.then(CommandManager.argument("target", EntityArgumentType.player())
-						.then(CommandManager.argument("value", DoubleArgumentType.doubleArg(0.0))
-								.executes(context -> {
-									ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "target");
-									double value = DoubleArgumentType.getDouble(context, "value");
+						.then(CommandManager.argument("attribute", StringArgumentType.word())
+								.then(CommandManager.argument("value", DoubleArgumentType.doubleArg(0))
+										.executes(context -> {
+											ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "target");
+											String attr = StringArgumentType.getString(context, "attribute");
+											double value = DoubleArgumentType.getDouble(context, "value");
 
-									if (target instanceof ManaAccessor mana) {
-										mana.setMana(value);
-										context.getSource().sendFeedback(
-												() -> Text.literal(
-														"Set " + target.getName().getString() + "'s mana to " + value),
-												true);
-										return 1;
-									}
-									context.getSource().sendError(Text.literal("Target does not support mana."));
-									return 0;
-								}))));
+											PlayerAttributeInstance instance = ((PlayerAttributeHolder) target)
+													.getAttributes().get(attr);
+											instance.setCurrent(value);
+
+											context.getSource().sendFeedback(
+													() -> Text.literal("Set " + target.getName().getString() + "'s "
+															+ attr + " to " + value),
+													true);
+											return 1;
+										})))));
+
+		// Level Up Attribute
+		dispatcher.register(CommandManager.literal("rpg-levelup")
+				.then(CommandManager.argument("attribute", StringArgumentType.word())
+						.executes(context -> {
+							ServerPlayerEntity player = (ServerPlayerEntity) context.getSource().getEntity();
+							String attr = StringArgumentType.getString(context, "attribute");
+
+							PlayerAttributeInstance instance = ((PlayerAttributeHolder) player).getAttributes()
+									.get(attr);
+							instance.levelUp();
+
+							context.getSource().sendFeedback(
+									() -> Text.literal(attr + " leveled up to " + instance.getLevel() + "!"),
+									true);
+							return 1;
+						})));
+
+		// Full Heal Command
+		dispatcher.register(CommandManager.literal("rpg-heal")
+				.executes(context -> {
+					ServerPlayerEntity player = (ServerPlayerEntity) context.getSource().getEntity();
+					PlayerAttributes attrs = ((PlayerAttributeHolder) player).getAttributes();
+
+					attrs.get("health").setCurrent(attrs.get("health").getMax());
+					attrs.get("mana").setCurrent(attrs.get("mana").getMax());
+
+					context.getSource().sendFeedback(() -> Text.literal("Fully restored health and mana!"), false);
+					return 1;
+				}));
 	}
 }
