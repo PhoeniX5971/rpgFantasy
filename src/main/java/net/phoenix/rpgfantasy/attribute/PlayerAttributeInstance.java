@@ -17,7 +17,9 @@ public class PlayerAttributeInstance {
 		if (baseMax > 0) {
 			this.baseMax = baseMax;
 		}
-		this.regenRate = regenRate;
+		if (regenRate > 0) {
+			this.regenRate = regenRate;
+		}
 	}
 
 	public double getMin() {

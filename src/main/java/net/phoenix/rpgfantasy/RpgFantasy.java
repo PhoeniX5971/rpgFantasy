@@ -20,25 +20,36 @@ public class RpgFantasy implements ModInitializer {
 		LOGGER.info("Initializing RPG Fantasy Mod");
 
 		// Command Registration
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-			ModCommands.register(dispatcher);
-		});
-
+		initCommands();
 		// Event Handlers
-		ManaHandler.register();
-		HealthHandler.register();
-
+		initEventHandlers();
 		// Respawn Handling
+		handleRespawn();
+
+		// Debug Info
+		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+			LOGGER.info("RPG Fantasy systems activated on server");
+		});
+	}
+
+	public void handleRespawn() {
 		ServerPlayerEvents.COPY_FROM.register((newPlayer, oldPlayer, alive) -> {
 			if (!alive) {
 				PlayerAttributes attributes = ((PlayerAttributeHolder) newPlayer).getAttributes();
 				attributes.get("health").setCurrent(attributes.get("health").getMax());
 			}
 		});
+	}
 
-		// Debug Info
-		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-			LOGGER.info("RPG Fantasy systems activated on server");
+	public void initEventHandlers() {
+		ManaHandler.register();
+		HealthHandler.register();
+		StrengthHandler.register();
+	}
+
+	public void initCommands() {
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			ModCommands.register(dispatcher);
 		});
 	}
 }
