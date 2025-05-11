@@ -4,7 +4,7 @@ import net.minecraft.nbt.NbtCompound;
 
 // Per-player attribute instance
 public class PlayerAttributeInstance {
-	private int level = 10;
+	private int allocatedPoints = 0;
 	private double baseMax = 10;
 	private double bonusMax = 0;
 	private double current = baseMax;
@@ -27,7 +27,7 @@ public class PlayerAttributeInstance {
 	}
 
 	public double getMax() {
-		return baseMax + bonusMax + level * 1.5; // Multiplier per level
+		return baseMax + bonusMax + allocatedPoints * 1.5; // Multiplier per allocatedPoints
 	}
 
 	public double getCurrent() {
@@ -50,12 +50,12 @@ public class PlayerAttributeInstance {
 		bonusMax = 0;
 	}
 
-	public void levelUp() {
-		level++;
+	public void allocatePoint() {
+		allocatedPoints++;
 	}
 
-	public int getLevel() {
-		return level;
+	public int getAllocatedPoints() {
+		return allocatedPoints;
 	}
 
 	public void setRegenRate(double rate) {
@@ -64,14 +64,14 @@ public class PlayerAttributeInstance {
 
 	public NbtCompound toNbt() {
 		NbtCompound nbt = new NbtCompound();
-		nbt.putInt("Level", level);
+		nbt.putInt("allocatedPoints", allocatedPoints);
 		nbt.putDouble("Current", current);
 		nbt.putDouble("BonusMax", bonusMax);
 		return nbt;
 	}
 
 	public void fromNbt(NbtCompound nbt) {
-		this.level = nbt.getInt("Level");
+		this.allocatedPoints = nbt.getInt("allocatedPoints");
 		this.current = nbt.getDouble("Current");
 		this.bonusMax = nbt.getDouble("BonusMax");
 	}

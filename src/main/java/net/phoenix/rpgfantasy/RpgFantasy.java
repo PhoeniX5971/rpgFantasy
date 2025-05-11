@@ -45,6 +45,7 @@ public class RpgFantasy implements ModInitializer {
 		ManaHandler.register();
 		HealthHandler.register();
 		StrengthHandler.register();
+		ExperienceHandler.register();
 	}
 
 	public void initCommands() {

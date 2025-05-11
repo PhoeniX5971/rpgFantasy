@@ -2,6 +2,7 @@ package net.phoenix.rpgfantasy.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 
 import net.minecraft.command.argument.EntityArgumentType;
@@ -12,6 +13,7 @@ import net.minecraft.text.Text;
 import net.phoenix.rpgfantasy.api.PlayerAttributeHolder;
 import net.phoenix.rpgfantasy.attribute.PlayerAttributeInstance;
 import net.phoenix.rpgfantasy.attribute.PlayerAttributes;
+import net.phoenix.rpgfantasy.level.PlayerLevelData;
 
 public class ModCommands {
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
@@ -62,10 +64,11 @@ public class ModCommands {
 
 							PlayerAttributeInstance instance = ((PlayerAttributeHolder) player).getAttributes()
 									.get(attr);
-							instance.levelUp();
+							instance.allocatePoint();
 
 							context.getSource().sendFeedback(
-									() -> Text.literal(attr + " leveled up to " + instance.getLevel() + "!"),
+									() -> Text.literal(
+											attr + " has " + instance.getAllocatedPoints() + " allocated points!"),
 									true);
 							return 1;
 						})));
@@ -82,5 +85,54 @@ public class ModCommands {
 					context.getSource().sendFeedback(() -> Text.literal("Fully restored health and mana!"), false);
 					return 1;
 				}));
+
+		// Level and XP commands
+		dispatcher.register(CommandManager.literal("rpg-xp")
+				.then(CommandManager.argument("amount", IntegerArgumentType.integer(1))
+						.executes(context -> {
+							ServerPlayerEntity player = (ServerPlayerEntity) context.getSource().getEntity();
+							int amount = IntegerArgumentType.getInteger(context, "amount");
+							((PlayerAttributeHolder) player).getLevelData().addExperience(amount);
+							context.getSource().sendFeedback(
+									() -> Text.literal("Added " + amount + " XP!"),
+									false);
+							return 1;
+						})));
+
+		dispatcher.register(CommandManager.literal("rpg-level")
+				.executes(context -> {
+					ServerPlayerEntity player = (ServerPlayerEntity) context.getSource().getEntity();
+					PlayerLevelData levelData = ((PlayerAttributeHolder) player).getLevelData();
+					context.getSource().sendFeedback(
+							() -> Text.literal("Level: " + levelData.getLevel() +
+									" | XP: " + levelData.getExperience() + "/" +
+									levelData.getRequiredExperience(levelData.getLevel()) +
+									" | Points: " + levelData.getUnallocatedPoints()),
+							false);
+					return 1;
+				}));
+
+		// Updated levelup command to use unallocated points
+		dispatcher.register(CommandManager.literal("rpg-levelup")
+				.then(CommandManager.argument("attribute", StringArgumentType.word())
+						.executes(context -> {
+							ServerPlayerEntity player = (ServerPlayerEntity) context.getSource().getEntity();
+							String attr = StringArgumentType.getString(context, "attribute");
+
+							PlayerLevelData levelData = ((PlayerAttributeHolder) player).getLevelData();
+							if (levelData.useUnallocatedPoint()) {
+								PlayerAttributeInstance instance = ((PlayerAttributeHolder) player)
+										.getAttributes().get(attr);
+								instance.allocatePoint();
+
+								context.getSource().sendFeedback(
+										() -> Text.literal("Allocated point to " + attr +
+												"! Remaining points: " + levelData.getUnallocatedPoints()),
+										true);
+							} else {
+								context.getSource().sendError(Text.literal("No unallocated points available!"));
+							}
+							return 1;
+						})));
 	}
 }

@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.phoenix.rpgfantasy.api.PlayerAttributeHolder;
 import net.phoenix.rpgfantasy.attribute.PlayerAttributeInstance;
 import net.phoenix.rpgfantasy.attribute.PlayerAttributes;
+import net.phoenix.rpgfantasy.level.PlayerLevelData;
 
 /**
  * Mixin to handle custom RPG attributes (health, mana, etc.) for players.
@@ -22,10 +23,17 @@ import net.phoenix.rpgfantasy.attribute.PlayerAttributes;
 public abstract class PlayerAttributeMixin implements PlayerAttributeHolder {
 	@Unique
 	private final PlayerAttributes rpgfantasy$attributes = new PlayerAttributes();
+	@Unique
+	private final PlayerLevelData rpgfantasy$levelData = new PlayerLevelData();
 
 	@Override
 	public PlayerAttributes getAttributes() {
 		return rpgfantasy$attributes;
+	}
+
+	@Override
+	public PlayerLevelData getLevelData() {
+		return rpgfantasy$levelData;
 	}
 
 	// ===== NBT PERSISTENCE ===== //
@@ -33,6 +41,7 @@ public abstract class PlayerAttributeMixin implements PlayerAttributeHolder {
 	private void writeAttributes(NbtCompound nbt, CallbackInfo ci) {
 		// Save all attributes to NBT under "RPGFantasyAttributes"
 		nbt.put("RPGFantasyAttributes", rpgfantasy$attributes.toNbt());
+		nbt.put("RPGFantasyLevelData", rpgfantasy$levelData.toNbt());
 	}
 
 	@Inject(method = "readCustomDataFromNbt(Lnet/minecraft/nbt/NbtCompound;)V", at = @At("HEAD"))
@@ -40,6 +49,9 @@ public abstract class PlayerAttributeMixin implements PlayerAttributeHolder {
 		// Load attributes from NBT if they exist
 		if (nbt.contains("RPGFantasyAttributes")) {
 			rpgfantasy$attributes.fromNbt(nbt.getCompound("RPGFantasyAttributes"));
+		}
+		if (nbt.contains("RPGFantasyLevelData")) {
+			rpgfantasy$levelData.fromNbt(nbt.getCompound("RPGFantasyLevelData"));
 		}
 	}
 
@@ -54,7 +66,9 @@ public abstract class PlayerAttributeMixin implements PlayerAttributeHolder {
 	private void onPlayerRespawn(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
 		if (!alive) {
 			PlayerAttributeInstance health = rpgfantasy$attributes.get("health");
+			PlayerAttributeInstance mana = rpgfantasy$attributes.get("mana");
 			health.setCurrent(health.getMax());
+			mana.setCurrent(mana.getMax());
 		}
 	}
 }
