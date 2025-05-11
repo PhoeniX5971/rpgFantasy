@@ -113,7 +113,7 @@ public class ModCommands {
 				}));
 
 		// Updated levelup command to use unallocated points
-		dispatcher.register(CommandManager.literal("rpg-levelup")
+		dispatcher.register(CommandManager.literal("rpg-allocatepoint")
 				.then(CommandManager.argument("attribute", StringArgumentType.word())
 						.executes(context -> {
 							ServerPlayerEntity player = (ServerPlayerEntity) context.getSource().getEntity();
