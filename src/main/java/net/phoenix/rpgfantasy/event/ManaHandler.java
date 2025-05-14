@@ -18,6 +18,6 @@ public class ManaHandler {
 	private static void onPlayerTick(ServerPlayerEntity player) {
 		PlayerAttributes attributes = ((PlayerAttributeHolder) player).getAttributes();
 		PlayerAttributeInstance mana = attributes.get("mana");
-		mana.setCurrent(mana.getCurrent() + mana.getRegenRate());
+		mana.setCurrent(mana.getCurrent() + (mana.getRegenRate() * mana.getMax() / 100));
 	}
 }

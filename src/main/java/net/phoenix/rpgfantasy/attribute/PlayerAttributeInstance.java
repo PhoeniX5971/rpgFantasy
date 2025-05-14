@@ -9,6 +9,7 @@ public class PlayerAttributeInstance {
 	private double bonusMax = 0;
 	private double current = baseMax;
 	private double regenRate = 0;
+	private double multiplier = 2;
 
 	public PlayerAttributeInstance() {
 	}
@@ -22,12 +23,24 @@ public class PlayerAttributeInstance {
 		}
 	}
 
+	public PlayerAttributeInstance(double baseMax, double regenRate, double multiplier) {
+		if (baseMax > 0) {
+			this.baseMax = baseMax;
+		}
+		if (regenRate > 0) {
+			this.regenRate = regenRate;
+		}
+		if (multiplier > 0) {
+			this.multiplier = multiplier;
+		}
+	}
+
 	public double getMin() {
 		return 0;
 	}
 
 	public double getMax() {
-		return baseMax + bonusMax + allocatedPoints * 1.5; // Multiplier per allocatedPoints
+		return baseMax + bonusMax + allocatedPoints * multiplier; // Multiplier per allocatedPoints
 	}
 
 	public double getCurrent() {
